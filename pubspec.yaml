@@ -1,0 +1,31 @@
+name: p5_flutter_app
+description: A new Flutter project.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.6 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  flutter_inappwebview: ^6.0.0-beta.24+1
+  flutter_keyboard_visibility: ^5.4.1
+  flutter_code_editor: ^0.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/p5.min.js
+    - assets/p5.html
+    - assets/sketch.js
+
