@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+const screenWidthVarName = 'screenWidth';
+const screenHeightVarName = 'screenHeight';
+
 class P5View extends StatefulWidget {
   const P5View({
     super.key,
@@ -110,8 +113,8 @@ class _P5ViewState extends State<P5View> {
               );
 
               await controller.evaluateJavascript(source: '''
-    let screenWidth = $screenWidth;
-    let screenHeight = $screenHeight;
+    let $screenWidthVarName = $screenWidth;
+    let $screenHeightVarName = $screenHeight;
     ''');
 
               final res =
