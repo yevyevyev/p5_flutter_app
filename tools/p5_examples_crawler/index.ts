@@ -67,7 +67,7 @@ async function parseExample(href: string, browser: puppeteer.Browser): Promise<E
   return {
     name,
     description,
-    code: code.join(),
+    code: (beautify(code.join('')) as string).replaceAll('createCanvas(720, 400)', 'createCanvas(screenWidth, screenHeight)'),
   };
 }
 

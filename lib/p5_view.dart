@@ -39,6 +39,7 @@ class _P5ViewState extends State<P5View> {
   final localhostServer = InAppLocalhostServer(
     documentRoot: 'assets',
     directoryIndex: 'p5.html',
+    shared: true,
   );
 
   InAppWebViewController? webViewController;
@@ -55,6 +56,7 @@ class _P5ViewState extends State<P5View> {
     overScrollMode: OverScrollMode.NEVER,
     disableLongPressContextMenuOnLinks: true,
     disableContextMenu: true,
+    isInspectable: true,
   );
 
   @override
