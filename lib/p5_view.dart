@@ -8,9 +8,11 @@ class P5View extends StatefulWidget {
   const P5View({
     super.key,
     required this.code,
+    this.keepAlive,
   });
 
   final String code;
+  final InAppWebViewKeepAlive? keepAlive;
 
   @override
   State<P5View> createState() => _P5ViewState();
@@ -36,12 +38,6 @@ class _P5ViewState extends State<P5View> {
     }
   }
 
-  final localhostServer = InAppLocalhostServer(
-    documentRoot: 'assets',
-    directoryIndex: 'p5.html',
-    shared: true,
-  );
-
   InAppWebViewController? webViewController;
   final settings = InAppWebViewSettings(
     mediaPlaybackRequiresUserGesture: false,
@@ -60,12 +56,6 @@ class _P5ViewState extends State<P5View> {
   );
 
   @override
-  void initState() {
-    localhostServer.start().then((value) => setState(() {}));
-    super.initState();
-  }
-
-  @override
   void didUpdateWidget(covariant P5View oldWidget) {
     if (widget.code != oldWidget.code) {
       error = null;
@@ -76,7 +66,6 @@ class _P5ViewState extends State<P5View> {
 
   @override
   void dispose() {
-    localhostServer.close();
     webViewController?.dispose();
     super.dispose();
   }
@@ -87,16 +76,12 @@ class _P5ViewState extends State<P5View> {
       return Material(child: Center(child: Text(error!)));
     }
 
-    if (!localhostServer.isRunning()) {
-      return const SizedBox();
-    }
-
     return GestureDetector(
       onLongPressDown: (details) {},
       child: LayoutBuilder(builder: (context, constraints) {
         setScreenSize(constraints.maxWidth, constraints.maxHeight);
-
         return InAppWebView(
+          keepAlive: widget.keepAlive,
           contextMenu: null,
           initialUrlRequest:
               URLRequest(url: WebUri('http://localhost:8080/p5.html')),

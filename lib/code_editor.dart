@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
-import 'package:flutter_highlight/themes/monokai-sublime.dart';
+import 'package:flutter_highlight/themes/github.dart';
 import 'package:highlight/languages/javascript.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:p5_flutter_app/p5_view.dart';
@@ -68,7 +68,7 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final codeThemeData = CodeThemeData(styles: monokaiSublimeTheme);
+    final codeThemeData = CodeThemeData(styles: githubTheme);
     return KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) => Scaffold(
         backgroundColor: codeThemeData.styles['root']!.backgroundColor,
