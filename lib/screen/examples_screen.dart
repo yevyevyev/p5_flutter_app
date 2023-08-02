@@ -18,31 +18,16 @@ class ExampleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (context) => ExampleScreenNotifier(context.read()),
-        builder: (context, child) => GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-              ),
-              itemCount: context
-                  .watch<ExampleScreenNotifier>()
-                  .examplesRepository
-                  .examples
-                  .length,
-              itemBuilder: (context, index) => ExampleGridCell(
-                  example: context
-                      .watch<ExampleScreenNotifier>()
-                      .examplesRepository
-                      .examples[index]),
-            )
-        // builder: (context, child) => CustomScrollView(
-        //   slivers: context
-        //       .watch<ExampleScreenNotifier>()
-        //       .examplesRepository
-        //       .data
-        //       .map((e) => ExampleSection(exampleGroup: e))
-        //       .toList(),
-        // ),
-        );
+      create: (context) => ExampleScreenNotifier(context.read()),
+      builder: (context, child) => CustomScrollView(
+        slivers: context
+            .watch<ExampleScreenNotifier>()
+            .examplesRepository
+            .data
+            .map((e) => ExampleSection(exampleGroup: e))
+            .toList(),
+      ),
+    );
   }
 }
 
@@ -70,22 +55,17 @@ class ExampleSection extends MultiSliver {
                 ),
               ),
             ),
-            SliverGrid.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 4,
-                crossAxisSpacing: 4,
-              ),
+            SliverList.builder(
               itemCount: exampleGroup.examples.length,
               itemBuilder: (context, index) =>
-                  ExampleGridCell(example: exampleGroup.examples[index]),
+                  ExampleListTile(example: exampleGroup.examples[index]),
             ),
           ],
         );
 }
 
-class ExampleGridCell extends StatelessWidget {
-  const ExampleGridCell({super.key, required this.example});
+class ExampleListTile extends StatelessWidget {
+  const ExampleListTile({super.key, required this.example});
 
   final ExampleModel example;
 
@@ -96,21 +76,19 @@ class ExampleGridCell extends StatelessWidget {
       child: Stack(
         children: [
           Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  example.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+            child: ListTile(
+              title: Text(
+                example.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: SizedBox(
+                height: 200,
+                child: ChangeNotifierProvider(
+                  create: (context) => P5ViewController(example.code),
+                  builder: (context, child) =>
+                      P5View(key: ValueKey(example.hashCode)),
                 ),
-                Expanded(
-                  child: ChangeNotifierProvider(
-                    create: (context) => P5ViewController(example.code),
-                    builder: (context, child) =>
-                        P5View(key: ValueKey(example.hashCode)),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           Container(color: Colors.transparent),

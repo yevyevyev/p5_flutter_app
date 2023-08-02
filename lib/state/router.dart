@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/code_editor.dart';
+import 'package:p5_flutter_app/model/project.dart';
 import 'package:p5_flutter_app/screen/screen.dart';
 import 'package:p5_flutter_app/widgets/widgets.dart';
 
@@ -35,6 +36,15 @@ class AppRouter {
                 child: const ProjectScreen(),
                 key: state.pageKey,
               ),
+              routes: [
+                GoRoute(
+                  path: 'editor',
+                  builder: (context, state) => ProjectCodeEditorScreen(
+                    project: state.extra as ProjectModel,
+                  ),
+                  parentNavigatorKey: rootNavigator,
+                ),
+              ],
             ),
             GoRoute(
               path: BarItem.example.routeName,

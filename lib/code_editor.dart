@@ -18,9 +18,11 @@ class CodeEditorWidget extends StatefulWidget {
   const CodeEditorWidget({
     super.key,
     required this.initialCode,
+    this.onChanged,
   });
 
   final String initialCode;
+  final void Function(String)? onChanged;
 
   @override
   State<CodeEditorWidget> createState() => _CodeEditorWidgetState();
@@ -62,6 +64,7 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
                   child: CodeField(
                     controller: controller,
                     maxLines: null,
+                    onChanged: widget.onChanged,
                   ),
                 ),
                 if (isKeyboardVisible)
