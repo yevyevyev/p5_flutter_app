@@ -21,6 +21,7 @@ dependencies:
   sliver_tools: ^0.2.12
   path_provider: ^2.0.15
   flutter_widget_from_html: ^0.10.3
+  flutter_isolate: ^2.0.4
 
 dev_dependencies:
   flutter_test:

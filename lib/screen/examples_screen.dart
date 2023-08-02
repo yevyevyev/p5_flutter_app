@@ -1,35 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/model/example.dart';
-import 'package:p5_flutter_app/p5_view.dart';
 import 'package:p5_flutter_app/state/state.dart';
+import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class ExampleScreenNotifier extends ChangeNotifier {
   ExampleScreenNotifier(this.examplesRepository);
-
-  InAppWebViewKeepAlive? resolveKeepAlive(int key) {
-    if (keepAlives.containsKey(key)) {
-      return keepAlives[key];
-    }
-
-    keepAlives[key] = InAppWebViewKeepAlive();
-    return keepAlives[key];
-  }
-
-  @override
-  void dispose() {
-    keepAlives.values
-        .map((e) => InAppWebViewController.disposeKeepAlive(e))
-        .toList();
-    super.dispose();
-  }
-
   final ExamplesRepository examplesRepository;
-  Map<int, InAppWebViewKeepAlive> keepAlives = {};
 }
 
 class ExampleScreen extends StatelessWidget {
@@ -124,11 +104,10 @@ class ExampleGridCell extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Expanded(
-                  child: P5View(
-                    code: example.code,
-                    keepAlive: context
-                        .read<ExampleScreenNotifier>()
-                        .resolveKeepAlive(example.hashCode),
+                  child: ChangeNotifierProvider(
+                    create: (context) => P5ViewController(example.code),
+                    builder: (context, child) =>
+                        P5View(key: ValueKey(example.hashCode)),
                   ),
                 ),
               ],

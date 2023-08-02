@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
@@ -12,7 +11,7 @@ abstract class FileResolver {
 }
 
 class RootBundleFileResolver implements FileResolver {
-  Map<String, String> _cache = {};
+  Map<String, Uint8List> _cache = {};
   List<String> cacheKeys;
 
   RootBundleFileResolver(this.cacheKeys);
@@ -20,13 +19,15 @@ class RootBundleFileResolver implements FileResolver {
   @override
   Future<Uint8List> getFile(String key) async {
     final path = 'assets/$key';
+    loadData() async => (await rootBundle.load(path)).buffer.asUint8List();
+
     if (cacheKeys.contains(key)) {
       if (!_cache.containsKey(key)) {
-        _cache[key] = await rootBundle.loadString(path);
+        _cache[key] = await loadData();
       }
-      return Uint8List.fromList(utf8.encode(_cache[key]!));
+      return _cache[key]!;
     }
-    return (await rootBundle.load(path)).buffer.asUint8List();
+    return loadData();
   }
 }
 

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:flutter_highlight/themes/github.dart';
+import 'package:go_router/go_router.dart';
 import 'package:highlight/languages/javascript.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:p5_flutter_app/p5_view.dart';
 import 'package:p5_flutter_app/state/state.dart';
+import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
+import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
 import 'package:provider/provider.dart';
 
 const customAutocompleteWords = [
@@ -78,8 +80,8 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
   Widget buildActionsRow(BuildContext context) => Row(
         children: [
           TextButton(
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => P5View(code: controller.fullText))),
+            onPressed: () =>
+                context.push('/preview', extra: controller.fullText),
             child: Text('RUN'),
           ),
           const Spacer(),
