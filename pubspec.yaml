@@ -40,4 +40,5 @@ flutter:
     - assets/sketch.js
     - assets/p5_examples.json
     - assets/p5_reference.json
+    - assets/assets/
 

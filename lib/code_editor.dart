@@ -4,36 +4,12 @@ import 'package:flutter_highlight/themes/github.dart';
 import 'package:highlight/languages/javascript.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:p5_flutter_app/p5_view.dart';
+import 'package:p5_flutter_app/state/state.dart';
+import 'package:provider/provider.dart';
 
 const customAutocompleteWords = [
   screenWidthVarName,
   screenHeightVarName,
-  'describe()',
-  'describeElement()',
-  'textOutput()',
-  'gridOutput()',
-  'print()',
-  'frameCount',
-  'deltaTime',
-  'focused',
-  'cursor()',
-  'frameRate()',
-  'getTargetFrameRate()',
-  'noCursor()',
-  'webglVersion',
-  'displayWidth',
-  'displayHeight',
-  'windowWidth',
-  'windowHeight',
-  'windowResized()',
-  'width',
-  'height',
-  'fullscreen()',
-  'pixelDensity()',
-  'displayDensity()',
-  'getURL()',
-  'getURLPath()',
-  'getURLParams()',
 ];
 
 class CodeEditorWidget extends StatefulWidget {
@@ -56,7 +32,10 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
 
   @override
   void initState() {
-    controller.autocompleter.setCustomWords(customAutocompleteWords);
+    final tokens = context.read<ReferenceRepository>().tokens;
+    controller.autocompleter.setCustomWords(
+      customAutocompleteWords + tokens.map((e) => e.label).toList(),
+    );
     super.initState();
   }
 

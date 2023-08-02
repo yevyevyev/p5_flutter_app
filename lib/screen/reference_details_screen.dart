@@ -48,35 +48,37 @@ class ReferenceDetailsScreen extends StatelessWidget {
             children: [
               ReferenceDescription(label: notifier.token.description),
               const SizedBox(height: 8),
-              const Text(
-                'Examples',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-              ),
-              const SizedBox(height: 8),
-              ...notifier.token.examples
-                  .map((e) => Stack(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CodeSnippet(code: e),
-                                const Divider(),
-                              ],
+              if (notifier.token.examples.isNotEmpty) ...[
+                const Text(
+                  'Examples',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                ),
+                const SizedBox(height: 8),
+                ...notifier.token.examples
+                    .map((e) => Stack(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CodeSnippet(code: e),
+                                  const Divider(),
+                                ],
+                              ),
                             ),
-                          ),
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: TextButton(
-                              onPressed: () =>
-                                  context.push('/editor', extra: e),
-                              child: const Text('Edit'),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: TextButton(
+                                onPressed: () =>
+                                    context.push('/editor', extra: e),
+                                child: const Text('Edit'),
+                              ),
                             ),
-                          ),
-                        ],
-                      ))
-                  .toList(),
+                          ],
+                        ))
+                    .toList(),
+              ],
               if (notifier.token.syntax.isNotEmpty) ...[
                 const Text(
                   'Syntax',
