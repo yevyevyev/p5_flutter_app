@@ -51,6 +51,14 @@ class AppRouter {
                 child: const ReferenceScreen(),
                 key: state.pageKey,
               ),
+              routes: [
+                GoRoute(
+                  path: 'details',
+                  builder: (context, state) => ReferenceDetailsScreen(
+                    href: state.extra as String,
+                  ),
+                )
+              ],
             ),
           ],
           parentNavigatorKey: rootNavigator,

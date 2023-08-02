@@ -20,6 +20,7 @@ dependencies:
   json_annotation: ^4.8.1
   sliver_tools: ^0.2.12
   path_provider: ^2.0.15
+  flutter_widget_from_html: ^0.10.3
 
 dev_dependencies:
   flutter_test:
@@ -38,4 +39,5 @@ flutter:
     - assets/p5.html
     - assets/sketch.js
     - assets/p5_examples.json
+    - assets/p5_reference.json
 

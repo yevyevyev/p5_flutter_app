@@ -14,7 +14,8 @@ interface ReferenceToken {
   description: string;
   examples: string[];
   href: string;
-  syntax: string;
+  syntax: string[];
+  returns: string | null;
   parameters: ReferenceTokenParam[];
 }
 
@@ -86,7 +87,7 @@ const baseUrl = 'https://p5js.org/reference';
     });
   }
 
-  fs.writeFileSync('./data.json', JSON.stringify(parsedGroups));
+  fs.writeFileSync('./p5_reference.json', beautify(JSON.stringify(parsedGroups)));
   await browser.close();
 })();
 
@@ -95,13 +96,26 @@ async function fetchReferenceToken(browser: puppeteer.Browser, href: string, lab
   await page.goto(baseUrl + href);
   await page.waitForSelector('.description');
   let description = '';
+  let returns: string | null = null;
 
   try {
-    description = await page.$eval('.description-text p', (d) => d.innerHTML);
+    const d = await page.$('.description-text');
+    description = await d!.$$eval('p', p => p.map(p => p.innerText).join('\n'));
   } catch (_) { }
-  let syntax = '';
+  let syntax: string[] = [];
   try {
-    syntax = await page.$eval('.syntax pre', (d) => d.innerText);
+    const div = await page.$('.syntax');
+    syntax = await div!.$$eval('pre', p => p.map(p => p.innerText));
+  } catch (_) { }
+
+  try {
+    returns = await page.$eval('.returns', p => {
+      let content = '';
+      for (let i = 0; i < p.childNodes.length; i++) {
+        content += p.childNodes[i].textContent;
+      }
+      return content
+    });
   } catch (_) { }
 
   let exampleCodes: string[] = [];
@@ -164,6 +178,7 @@ async function fetchReferenceToken(browser: puppeteer.Browser, href: string, lab
     examples: exampleCodes,
     href,
     syntax,
+    returns,
     parameters: referenceTokenParams,
   };
 }

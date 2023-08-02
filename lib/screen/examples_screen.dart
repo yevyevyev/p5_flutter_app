@@ -33,7 +33,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
   @override
   Widget build(BuildContext context) {
     if (exampleGroups.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const SizedBox();
     }
 
     return CustomScrollView(
@@ -51,7 +51,8 @@ class ExampleSection extends MultiSliver {
           pushPinnedChildren: true,
           children: [
             SliverPinnedHeader(
-              child: Container(
+              child: Material(
+                elevation: 2,
                 color: Colors.white,
                 child: SafeArea(
                   child: ListTile(
