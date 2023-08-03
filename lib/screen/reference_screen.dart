@@ -140,8 +140,8 @@ class ReferenceTokenListTile extends StatelessWidget {
     );
   }
 
-  void onTap(BuildContext context) => context.go(
-        '/reference/details',
-        extra: token.href,
-      );
+  void onTap(BuildContext context) {
+    final query = Uri.encodeComponent(token.href);
+    context.go('/reference/details?href=$query');
+  }
 }

@@ -2,14 +2,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/code_editor.dart';
-import 'package:p5_flutter_app/model/project.dart';
 import 'package:p5_flutter_app/screen/screen.dart';
 import 'package:p5_flutter_app/widgets/widgets.dart';
 
 class AppRouter {
   AppRouter() {
     router = GoRouter(
-      initialLocation: BarItem.project.routeName,
+      initialLocation: '/project',
+      redirect: (context, state) {
+        if (state.uri.toString() == '/') {
+          return '/project';
+        }
+
+        return null;
+      },
       routes: [
         GoRoute(
           path: '/editor',
@@ -24,55 +30,66 @@ class AppRouter {
               P5PreviewScreen(code: state.extra as String),
           parentNavigatorKey: rootNavigator,
         ),
-        ShellRoute(
-          pageBuilder: (context, state, child) => NoTransitionPage(
-            child: HomeScaffold(body: child),
+        StatefulShellRoute.indexedStack(
+          pageBuilder: (context, state, navigationShell) => NoTransitionPage(
+            child: HomeScaffold(navigationShell: navigationShell),
           ),
-          routes: [
-            GoRoute(
-              path: BarItem.project.routeName,
-              parentNavigatorKey: _shellNavigator,
-              pageBuilder: (context, state) => NoTransitionPage(
-                child: const ProjectScreen(),
-                key: state.pageKey,
-              ),
+          branches: [
+            StatefulShellBranch(
+              navigatorKey: _shellNavigatorProject,
               routes: [
                 GoRoute(
-                  path: 'editor',
-                  builder: (context, state) => ProjectCodeEditorScreen(
-                    project: state.extra as ProjectModel,
+                  path: '/project',
+                  pageBuilder: (context, state) => NoTransitionPage(
+                    child: const ProjectScreen(),
+                    key: state.pageKey,
                   ),
-                  parentNavigatorKey: rootNavigator,
+                  routes: [
+                    GoRoute(
+                      path: 'editor/:projectId',
+                      builder: (context, state) => ProjectCodeEditorScreen(
+                        projectId:
+                            int.parse(state.pathParameters['projectId']!),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            GoRoute(
-              path: BarItem.example.routeName,
-              parentNavigatorKey: _shellNavigator,
-              pageBuilder: (context, state) => NoTransitionPage(
-                child: const ExampleScreen(),
-                key: state.pageKey,
-              ),
-            ),
-            GoRoute(
-              path: BarItem.reference.routeName,
-              parentNavigatorKey: _shellNavigator,
-              pageBuilder: (context, state) => NoTransitionPage(
-                child: const ReferenceScreen(),
-                key: state.pageKey,
-              ),
+            StatefulShellBranch(
+              navigatorKey: _shellNavigatorExamples,
               routes: [
                 GoRoute(
-                  path: 'details',
-                  builder: (context, state) => ReferenceDetailsScreen(
-                    href: state.extra as String,
+                  path: '/examples',
+                  pageBuilder: (context, state) => NoTransitionPage(
+                    child: const ExampleScreen(),
+                    key: state.pageKey,
                   ),
-                )
+                ),
               ],
             ),
+            StatefulShellBranch(
+              navigatorKey: _shellNavigatorReference,
+              routes: [
+                GoRoute(
+                  path: '/reference',
+                  pageBuilder: (context, state) => NoTransitionPage(
+                    child: const ReferenceScreen(),
+                    key: state.pageKey,
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: 'details',
+                      builder: (context, state) => ReferenceDetailsScreen(
+                        href: state.uri.queryParameters['href']!,
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            )
           ],
           parentNavigatorKey: rootNavigator,
-          navigatorKey: _shellNavigator,
         ),
       ],
       debugLogDiagnostics: kDebugMode,
@@ -82,5 +99,7 @@ class AppRouter {
 
   late final GoRouter router;
   static final rootNavigator = GlobalKey<NavigatorState>();
-  static final _shellNavigator = GlobalKey<NavigatorState>();
+  static final _shellNavigatorProject = GlobalKey<NavigatorState>();
+  static final _shellNavigatorExamples = GlobalKey<NavigatorState>();
+  static final _shellNavigatorReference = GlobalKey<NavigatorState>();
 }

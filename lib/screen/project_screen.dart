@@ -121,7 +121,7 @@ class ProjectListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () => context.push('/project/editor', extra: project),
+      onTap: () => context.push('/project/editor/${project.key}'),
       title: Text(
         project.name,
         style: const TextStyle(fontSize: 20),
