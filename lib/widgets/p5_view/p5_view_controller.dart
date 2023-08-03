@@ -1,12 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:p5_flutter_app/state/localhost_server/localhost_server.dart';
 import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
 
 const initialUrl = 'http://localhost:8080/p5.html';
 const p5Url = 'http://localhost:8080/p5.min.js';
 
 class P5ViewController extends ChangeNotifier {
-  P5ViewController(this.code);
+  P5ViewController(this.code, LocalHostServerErrorHandler handler) {
+    _localhostErrorHandler = handler.errorStream.listen((event) {
+      addConsoleMessage(ConsoleMessage(
+        message: event,
+        messageLevel: ConsoleMessageLevel.ERROR,
+      ));
+    });
+  }
 
   List<ConsoleMessage> consoleMessages = [];
   double? screenWidth;
@@ -25,7 +35,7 @@ class P5ViewController extends ChangeNotifier {
     screenHeight = height;
     screenWidth = width;
     if (shouldReload) {
-      webViewController?.reload();
+      _webViewController?.reload();
     }
   }
 
@@ -34,8 +44,12 @@ class P5ViewController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void onWebViewCreated(InAppWebViewController controller) {
+    _webViewController = controller;
+  }
+
   void onLoadStop(InAppWebViewController controller, WebUri? uri) async {
-    webViewController = controller;
+    _webViewController = controller;
     try {
       await controller.injectJavascriptFileFromUrl(urlFile: WebUri(p5Url));
 
@@ -58,11 +72,13 @@ class P5ViewController extends ChangeNotifier {
     }
   }
 
-  InAppWebViewController? webViewController;
+  InAppWebViewController? _webViewController;
+  StreamSubscription<String>? _localhostErrorHandler;
 
   @override
   void dispose() {
-    webViewController?.dispose();
+    _localhostErrorHandler?.cancel();
+    _webViewController?.dispose();
     super.dispose();
   }
 }

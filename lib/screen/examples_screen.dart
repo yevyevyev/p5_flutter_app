@@ -84,14 +84,23 @@ class ExampleListTile extends StatelessWidget {
               subtitle: SizedBox(
                 height: 200,
                 child: ChangeNotifierProvider(
-                  create: (context) => P5ViewController(example.code),
-                  builder: (context, child) =>
-                      P5View(key: ValueKey(example.hashCode)),
+                  create: (context) => P5ViewController(
+                    example.code,
+                    context.read(),
+                  ),
+                  builder: (context, child) => P5View(
+                    key: ValueKey(example.hashCode),
+                    showConsole: false,
+                  ),
                 ),
               ),
             ),
           ),
-          Container(color: Colors.transparent),
+          Positioned.fill(
+            child: Container(
+              color: Colors.transparent,
+            ),
+          ),
         ],
       ),
     );

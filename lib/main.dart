@@ -16,16 +16,19 @@ void main() async {
   await referenceRepository.preload();
   await examplesRepository.preload();
   await projectsRepository.preload();
-  await startLocalhost();
+  final localhostErrorStream = await startLocalhost();
 
   runApp(
     Provider.value(
-      value: projectsRepository,
+      value: localhostErrorStream,
       child: Provider.value(
-        value: referenceRepository,
+        value: projectsRepository,
         child: Provider.value(
-          value: examplesRepository,
-          child: const P5FlutterApp(),
+          value: referenceRepository,
+          child: Provider.value(
+            value: examplesRepository,
+            child: const P5FlutterApp(),
+          ),
         ),
       ),
     ),

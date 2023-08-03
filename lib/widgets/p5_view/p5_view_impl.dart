@@ -6,7 +6,9 @@ import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
 import 'package:provider/provider.dart';
 
 class P5View extends StatelessWidget {
-  const P5View({super.key});
+  const P5View({super.key, this.showConsole = true});
+
+  final bool showConsole;
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +17,10 @@ class P5View extends StatelessWidget {
       onLongPressDown: (details) {},
       child: LayoutBuilder(builder: (context, constraints) {
         notifier.setScreenSize(constraints.maxWidth, constraints.maxHeight);
+        if (!showConsole) {
+          return buildWebView(notifier);
+        }
+
         return Stack(
           children: [
             buildWebView(notifier),
@@ -41,8 +47,7 @@ class P5View extends StatelessWidget {
             notifier.addConsoleMessage(consoleMessage),
         onLoadStop: notifier.onLoadStop,
         initialSettings: webviewSettings,
-        onWebViewCreated: (controller) =>
-            notifier.webViewController = controller,
+        onWebViewCreated: notifier.onWebViewCreated,
         onReceivedError: (controller, request, error) {
           print(error);
         },

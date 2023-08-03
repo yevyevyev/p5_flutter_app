@@ -3,11 +3,21 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 
 import 'mime_type_resolver.dart';
 
 abstract class FileResolver {
   Future<Uint8List> getFile(String key);
+}
+
+class AppDataFileResolver implements FileResolver {
+  @override
+  Future<Uint8List> getFile(String key) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/$key');
+    return file.readAsBytes();
+  }
 }
 
 class RootBundleFileResolver implements FileResolver {
@@ -28,6 +38,23 @@ class RootBundleFileResolver implements FileResolver {
       return _cache[key]!;
     }
     return loadData();
+  }
+}
+
+class MultiFileResolver implements FileResolver {
+  MultiFileResolver(this.fileResolvers);
+
+  final List<FileResolver> fileResolvers;
+
+  @override
+  Future<Uint8List> getFile(String key) async {
+    for (final resolver in fileResolvers) {
+      try {
+        final res = await resolver.getFile(key);
+        return res;
+      } catch (_) {}
+    }
+    throw Exception('File $key Not Found');
   }
 }
 
@@ -63,7 +90,7 @@ class CustomInAppLocalhostServer {
 
     runZonedGuarded(() {
       HttpServer.bind('127.0.0.1', _port, shared: _shared).then((server) {
-        print('Server running on http://localhost:' + _port.toString());
+        print('Server running on http://localhost:$_port');
 
         _server = server;
 
