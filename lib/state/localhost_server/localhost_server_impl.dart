@@ -20,25 +20,25 @@ class AppDataFileResolver implements FileResolver {
   }
 }
 
-class RootBundleFileResolver implements FileResolver {
-  Map<String, Uint8List> _cache = {};
-  List<String> cacheKeys;
-
-  RootBundleFileResolver(this.cacheKeys);
+class InMemoryFileResolver implements FileResolver {
+  final Map<String, Uint8List> _cache = {};
 
   @override
   Future<Uint8List> getFile(String key) async {
-    final path = 'assets/$key';
-    loadData() async => (await rootBundle.load(path)).buffer.asUint8List();
-
-    if (cacheKeys.contains(key)) {
-      if (!_cache.containsKey(key)) {
-        _cache[key] = await loadData();
-      }
+    if (_cache.containsKey(key)) {
       return _cache[key]!;
     }
-    return loadData();
+
+    throw Exception('InMemoryFileResolver key $key not found');
   }
+
+  void put(String key, Uint8List value) => _cache[key] = value;
+}
+
+class RootBundleFileResolver implements FileResolver {
+  @override
+  Future<Uint8List> getFile(String key) async =>
+      (await rootBundle.load('assets/$key')).buffer.asUint8List();
 }
 
 class MultiFileResolver implements FileResolver {
@@ -54,7 +54,7 @@ class MultiFileResolver implements FileResolver {
         return res;
       } catch (_) {}
     }
-    throw Exception('File $key Not Found');
+    throw Exception('MultiFileResolver key $key Not Found');
   }
 }
 
@@ -105,6 +105,7 @@ class CustomInAppLocalhostServer {
           }
 
           try {
+            print('Localhost: fetching $path');
             body = await _fileResolver.getFile(path);
           } catch (e) {
             _streamErrors.add(e);

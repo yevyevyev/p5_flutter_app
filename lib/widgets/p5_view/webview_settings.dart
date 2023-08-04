@@ -10,10 +10,15 @@ final webviewSettings = InAppWebViewSettings(
   disableVerticalScroll: true,
   disableHorizontalScroll: true,
   supportZoom: false,
+  builtInZoomControls: false,
   overScrollMode: OverScrollMode.NEVER,
   disableLongPressContextMenuOnLinks: true,
   disableContextMenu: true,
   isInspectable: true,
+  transparentBackground: true,
+  needInitialFocus: false,
+  allowsBackForwardNavigationGestures: false,
+  allowsLinkPreview: false,
 );
 
 const screenWidthVarName = 'screenWidth';

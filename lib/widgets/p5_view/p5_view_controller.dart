@@ -7,6 +7,7 @@ import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
 
 const initialUrl = 'http://localhost:8080/p5.html';
 const p5Url = 'http://localhost:8080/p5.min.js';
+const p5SoundUrl = 'http://localhost:8080/p5.sound.min.js';
 
 class P5ViewController extends ChangeNotifier {
   P5ViewController(this.code, LocalHostServerErrorHandler handler) {
@@ -52,6 +53,11 @@ class P5ViewController extends ChangeNotifier {
     _webViewController = controller;
     try {
       await controller.injectJavascriptFileFromUrl(urlFile: WebUri(p5Url));
+
+      if (code.contains('loadSound')) {
+        await controller.injectJavascriptFileFromUrl(
+            urlFile: WebUri(p5SoundUrl));
+      }
 
       await controller.evaluateJavascript(source: '''
           let $screenWidthVarName = $screenWidth;

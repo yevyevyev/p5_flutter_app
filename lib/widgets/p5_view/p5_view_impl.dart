@@ -20,7 +20,6 @@ class P5View extends StatelessWidget {
         if (!showConsole) {
           return buildWebView(notifier);
         }
-
         return Stack(
           children: [
             buildWebView(notifier),
