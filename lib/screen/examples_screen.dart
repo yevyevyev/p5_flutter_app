@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -7,8 +8,12 @@ import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-class ExampleScreenNotifier extends ChangeNotifier {
-  ExampleScreenNotifier(this.examplesRepository);
+class ExampleScreenNotifier extends ChangeNotifier
+    with SearchMixin<ExampleModel> {
+  ExampleScreenNotifier(this.examplesRepository) {
+    addSearchHandler(examplesRepository.searchByName);
+  }
+
   final ExamplesRepository examplesRepository;
 }
 
@@ -19,14 +24,36 @@ class ExampleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => ExampleScreenNotifier(context.read()),
-      builder: (context, child) => CustomScrollView(
-        slivers: context
-            .watch<ExampleScreenNotifier>()
-            .examplesRepository
-            .data
-            .map((e) => ExampleSection(exampleGroup: e))
-            .toList(),
+      builder: (context, child) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: CupertinoSearchTextField(
+            controller:
+                context.read<ExampleScreenNotifier>().searchTextController,
+          ),
+        ),
+        body: buildBody(context),
       ),
+    );
+  }
+
+  Widget buildBody(BuildContext context) {
+    final notifier = context.watch<ExampleScreenNotifier>();
+    if (notifier.isSearch) {
+      return ListView.builder(
+        itemCount: notifier.searchResults.length,
+        itemBuilder: (context, index) => ExampleListTile(
+          key: ValueKey(notifier.searchResults[index].hashCode),
+          example: notifier.searchResults[index],
+        ),
+      );
+    }
+
+    return CustomScrollView(
+      slivers: notifier.examplesRepository.data
+          .map((e) => ExampleSection(exampleGroup: e))
+          .toList(),
     );
   }
 }
@@ -57,8 +84,10 @@ class ExampleSection extends MultiSliver {
             ),
             SliverList.builder(
               itemCount: exampleGroup.examples.length,
-              itemBuilder: (context, index) =>
-                  ExampleListTile(example: exampleGroup.examples[index]),
+              itemBuilder: (context, index) => ExampleListTile(
+                key: ValueKey(exampleGroup.examples[index].hashCode),
+                example: exampleGroup.examples[index],
+              ),
             ),
           ],
         );
@@ -89,7 +118,7 @@ class ExampleListTile extends StatelessWidget {
                     context.read(),
                   ),
                   builder: (context, child) => P5View(
-                    key: ValueKey(example.hashCode),
+                    key: ValueKey(example.name.hashCode),
                     showConsole: false,
                   ),
                 ),

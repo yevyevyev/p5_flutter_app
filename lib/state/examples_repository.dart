@@ -13,4 +13,8 @@ class ExamplesRepository {
     data = json.map((e) => ExampleGroupModel.fromJson(e)).toList();
     examples = data.expand((e) => e.examples).toList();
   }
+
+  List<ExampleModel> searchByName(String name) => examples
+      .where((e) => e.name.toLowerCase().contains(name.toLowerCase()))
+      .toList();
 }

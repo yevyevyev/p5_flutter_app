@@ -6,30 +6,13 @@ import 'package:p5_flutter_app/state/state.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-class ReferenceScreenNotifier extends ChangeNotifier {
+class ReferenceScreenNotifier extends ChangeNotifier
+    with SearchMixin<ReferenceTokenModel> {
   ReferenceScreenNotifier(this.referenceRepository) {
-    searchTextController.addListener(() {
-      isSearch = searchTextController.text.isNotEmpty;
-      if (isSearch) {
-        tokenSearchResults =
-            referenceRepository.searchTokens(searchTextController.text);
-        notifyListeners();
-      }
-      notifyListeners();
-    });
+    addSearchHandler(referenceRepository.searchTokens);
   }
 
-  @override
-  void dispose() {
-    searchTextController.dispose();
-    super.dispose();
-  }
-
-  List<ReferenceTokenModel> tokenSearchResults = [];
-  final searchTextController = TextEditingController();
   final ReferenceRepository referenceRepository;
-
-  var isSearch = false;
 }
 
 class ReferenceScreen extends StatelessWidget {
@@ -57,9 +40,9 @@ class ReferenceScreen extends StatelessWidget {
     final notifier = context.watch<ReferenceScreenNotifier>();
     if (notifier.isSearch) {
       return ListView.builder(
-        itemCount: notifier.tokenSearchResults.length,
+        itemCount: notifier.searchResults.length,
         itemBuilder: (context, index) => ReferenceTokenListTile(
-          token: notifier.tokenSearchResults[index],
+          token: notifier.searchResults[index],
         ),
       );
     }
