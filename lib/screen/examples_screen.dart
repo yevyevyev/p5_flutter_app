@@ -114,7 +114,9 @@ class ExampleListTile extends StatelessWidget {
                 child: Provider(
                   dispose: (context, value) => value.dispose(),
                   lazy: false,
-                  create: (context) => P5ViewController(example.code),
+                  create: (context) => P5ViewController(
+                    code: example.code,
+                  ),
                   builder: (context, child) => P5View(
                     key: ValueKey(example.name.hashCode),
                     showConsole: false,

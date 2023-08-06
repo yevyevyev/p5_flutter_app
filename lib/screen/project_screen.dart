@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/model/project.dart';
 import 'package:p5_flutter_app/state/state.dart';
+import 'package:p5_flutter_app/widgets/widgets.dart';
 import 'package:provider/provider.dart';
 
 class ProjectsNotifier extends ChangeNotifier {
   ProjectsNotifier(this.projectsRepository);
 
-  void addProject(ProjectModel project) {
-    projectsRepository.addProject(project);
+  void addProject(String name) {
+    projectsRepository.addProject(name);
     notifyListeners();
   }
 
-  List<ProjectModel> get data => projectsRepository.projects.values.toList();
+  List<ProjectModel> get data => projectsRepository.getAll();
 
   final ProjectsRepository projectsRepository;
 }
@@ -27,14 +28,13 @@ class ProjectScreen extends StatelessWidget {
       builder: (context, child) => Scaffold(
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            final projectName = await ProjectEnterNameDialog.show(context);
+            final projectName = await TextFieldDialog.show(
+              context,
+              title: 'Enter project name',
+            );
             if (projectName != null) {
               // ignore: use_build_context_synchronously
-              context.read<ProjectsNotifier>().addProject(
-                    ProjectModel()
-                      ..name = projectName
-                      ..code = startingCode,
-                  );
+              context.read<ProjectsNotifier>().addProject(projectName);
             }
           },
           child: const Icon(Icons.add),
@@ -52,42 +52,6 @@ class ProjectScreen extends StatelessWidget {
           ),
         ),
         body: const ProjectsScreenBody(),
-      ),
-    );
-  }
-}
-
-class ProjectEnterNameDialog extends StatelessWidget {
-  const ProjectEnterNameDialog({super.key});
-
-  static Future<String?> show(BuildContext context) => showDialog(
-        context: context,
-        builder: (_) => const ProjectEnterNameDialog(),
-      );
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Enter project name',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextField(
-              style: const TextStyle(fontSize: 20),
-              textInputAction: TextInputAction.done,
-              autofocus: true,
-              onSubmitted: (value) => context.pop(value),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -121,7 +85,7 @@ class ProjectListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () => context.push('/project/editor/${project.key}'),
+      onTap: () => context.push('/project/${project.key}'),
       title: Text(
         project.name,
         style: const TextStyle(fontSize: 20),

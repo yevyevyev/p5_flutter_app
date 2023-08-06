@@ -36,7 +36,8 @@ class P5View extends StatelessWidget {
           contextMenu: null,
           initialData: InAppWebViewInitialData(
             data: P5ViewController.p5IndexHtml,
-            baseUrl: WebUri('http://localhost:8080/p5.html'),
+            baseUrl:
+                WebUri('http://localhost:8080/${p5controller.folder}p5.html'),
           ),
           onConsoleMessage: (controller, consoleMessage) =>
               p5controller.addConsoleMessage(consoleMessage),

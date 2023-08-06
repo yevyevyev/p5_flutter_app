@@ -11,6 +11,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await P5ViewController.preload();
   await Hive.initFlutter();
+  // var appDir = await getApplicationDocumentsDirectory();
+  // appDir.listSync().map((e) => e.deleteSync()).toList();
+
   Hive.registerAdapter(ProjectModelAdapter());
   final referenceRepository = ReferenceRepository();
   final examplesRepository = ExamplesRepository();

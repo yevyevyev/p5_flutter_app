@@ -18,17 +18,20 @@ class ProjectModelAdapter extends TypeAdapter<ProjectModel> {
     };
     return ProjectModel()
       ..name = fields[0] as String
-      ..code = fields[1] as String;
+      ..createdAt = fields[1] as DateTime
+      ..updatedAt = fields[2] as DateTime;
   }
 
   @override
   void write(BinaryWriter writer, ProjectModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.code);
+      ..write(obj.createdAt)
+      ..writeByte(2)
+      ..write(obj.updatedAt);
   }
 
   @override

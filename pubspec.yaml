@@ -25,9 +25,15 @@ dependencies:
   fk_user_agent: ^2.1.0
   hive: ^3.0.0-dev
   hive_flutter: ^2.0.0-dev
+  image_picker: ^1.0.2
+  easy_image_viewer: ^1.2.1
+  chewie: ^1.7.0
+  video_player: ^2.7.0
+  http: ^1.1.0
 
 dependency_overrides:
   hive: ^3.0.0-dev
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:

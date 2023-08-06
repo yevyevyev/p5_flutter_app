@@ -25,9 +25,18 @@ class AppRouter {
           parentNavigatorKey: rootNavigator,
         ),
         GoRoute(
+          path: '/video',
+          builder: (context, state) => VideoPreviewScreen(
+            filepath: state.uri.queryParameters['filepath']!,
+          ),
+          parentNavigatorKey: rootNavigator,
+        ),
+        GoRoute(
           path: '/preview',
-          builder: (context, state) =>
-              P5PreviewScreen(code: state.extra as String),
+          builder: (context, state) => P5PreviewScreen(
+            code: state.extra as String,
+            folder: state.uri.queryParameters['folder'] ?? '',
+          ),
           parentNavigatorKey: rootNavigator,
         ),
         StatefulShellRoute.indexedStack(
@@ -46,11 +55,21 @@ class AppRouter {
                   ),
                   routes: [
                     GoRoute(
-                      path: 'editor/:projectId',
-                      builder: (context, state) => ProjectCodeEditorScreen(
+                      path: ':projectId',
+                      builder: (context, state) => ProjectDetailsScreen(
                         projectId:
                             int.parse(state.pathParameters['projectId']!),
                       ),
+                      routes: [
+                        GoRoute(
+                          path: 'editor',
+                          builder: (context, state) => ProjectCodeEditorScreen(
+                            filepath: state.uri.queryParameters['filepath']!,
+                            projectId:
+                                int.parse(state.pathParameters['projectId']!),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

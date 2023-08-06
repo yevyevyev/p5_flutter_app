@@ -18,10 +18,12 @@ class CodeEditorWidget extends StatefulWidget {
   const CodeEditorWidget({
     super.key,
     required this.initialCode,
+    this.projectFolder = '',
     this.onChanged,
   });
 
   final String initialCode;
+  final String projectFolder;
   final void Function(String)? onChanged;
 
   @override
@@ -83,8 +85,13 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
   Widget buildActionsRow(BuildContext context) => Row(
         children: [
           TextButton(
-            onPressed: () =>
-                context.push('/preview', extra: controller.fullText),
+            onPressed: () {
+              final query = Uri.encodeComponent(widget.projectFolder);
+              context.push(
+                '/preview?folder=$query',
+                extra: controller.fullText,
+              );
+            },
             child: Text('RUN'),
           ),
           const Spacer(),

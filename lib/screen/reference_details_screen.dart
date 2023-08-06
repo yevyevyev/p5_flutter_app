@@ -31,7 +31,7 @@ class ReferenceDetailsScreen extends StatelessWidget {
             preferredSize: const Size.fromHeight(kToolbarHeight),
             child: SafeArea(
               child: ListTile(
-                leading: const BackButton(),
+                leading: const BackButton(color: Colors.black),
                 title: Text(
                   notifier.token.label,
                   style: const TextStyle(

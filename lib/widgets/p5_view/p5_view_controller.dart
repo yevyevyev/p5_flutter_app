@@ -6,13 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:p5_flutter_app/state/localhost_server/localhost_server.dart';
 import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
+import 'package:http/http.dart' as http;
 
 const initialUrl = 'http://localhost:8080/p5.html';
 const p5Url = 'http://localhost:8080/p5.min.js';
 const p5SoundUrl = 'http://localhost:8080/p5.sound.min.js';
 
 class P5ViewController {
-  P5ViewController(this.code) {
+  P5ViewController({required this.code, this.folder = ''}) {
     _localhostErrorHandler = _localhostErrorStream.errorStream.listen((event) {
       addConsoleMessage(ConsoleMessage(
         message: event,
@@ -36,6 +37,7 @@ class P5ViewController {
   final consoleMessages = ValueNotifier<List<ConsoleMessage>>([]);
   final isPageLoading = ValueNotifier(true);
   final String code;
+  final String folder;
   final _sizeCompleter = Completer<Size>();
 
   void setScreenSize(double width, double height) {
@@ -57,12 +59,13 @@ class P5ViewController {
     _webViewController = controller;
     try {
       final size = await _sizeCompleter.future;
+      final resolvedCode = await _resolveCodeImports(code);
       final evalCode = '''
           $p5MinJsCode\n
-          ${code.contains('loadSound') ? p5SoundMinJsCode : ''}\n
+          ${resolvedCode.contains('loadSound') ? p5SoundMinJsCode : ''}\n
           let $screenWidthVarName = ${size.width};
           let $screenHeightVarName = ${size.height};\n
-          $code
+          $resolvedCode
           ''';
 
       final res = await controller.evaluateJavascript(source: evalCode);
@@ -77,6 +80,20 @@ class P5ViewController {
     } finally {
       isPageLoading.value = false;
     }
+  }
+
+  Future<String> _resolveCodeImports(String code) async {
+    final importRegex = RegExp(r"""import\s+([\'\"])(.*?)\1""");
+    final matches = importRegex.allMatches(code);
+    var resolvedCode = code;
+    for (final match in matches) {
+      final fileName = match.group(2)!;
+      final uri = Uri.parse('http://localhost:8080/${folder}$fileName');
+      final body = (await http.get(uri)).body;
+      resolvedCode = code.replaceRange(match.start, match.end + 1, body);
+    }
+
+    return resolvedCode;
   }
 
   InAppWebViewController? _webViewController;
