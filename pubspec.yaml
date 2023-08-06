@@ -22,6 +22,7 @@ dependencies:
   path_provider: ^2.0.15
   flutter_widget_from_html: ^0.10.3
   flutter_isolate: ^2.0.4
+  fk_user_agent: ^2.1.0
   hive: ^3.0.0-dev
   hive_flutter: ^2.0.0-dev
 

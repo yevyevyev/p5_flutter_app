@@ -3,55 +3,86 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:p5_flutter_app/widgets/p5_view/console_message_list.dart';
 import 'package:p5_flutter_app/widgets/p5_view/p5_view_controller.dart';
 import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
-import 'package:provider/provider.dart';
 
 class P5View extends StatelessWidget {
-  const P5View({super.key, this.showConsole = true});
+  const P5View({
+    super.key,
+    this.showConsole = true,
+    required this.p5controller,
+  });
 
   final bool showConsole;
+  final P5ViewController p5controller;
 
   @override
   Widget build(BuildContext context) {
-    final notifier = context.watch<P5ViewController>();
-    return GestureDetector(
-      onLongPressDown: (details) {},
-      child: LayoutBuilder(builder: (context, constraints) {
-        notifier.setScreenSize(constraints.maxWidth, constraints.maxHeight);
-        if (!showConsole) {
-          return buildWebView(notifier);
-        }
-        return Stack(
-          children: [
-            buildWebView(notifier),
-            if (notifier.consoleMessages.isNotEmpty)
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: ConsoleMessageList(
-                  consoleMessages: notifier.consoleMessages,
-                ),
+    return buildWebView();
+  }
+
+  Widget buildWebView() {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: LayoutBuilder(builder: (context, constraints) {
+            p5controller.setScreenSize(
+              constraints.maxWidth,
+              constraints.maxHeight,
+            );
+            return const SizedBox();
+          }),
+        ),
+        InAppWebView(
+          key: key,
+          contextMenu: null,
+          initialData: InAppWebViewInitialData(
+            data: P5ViewController.p5IndexHtml,
+            baseUrl: WebUri('http://localhost:8080/p5.html'),
+          ),
+          onConsoleMessage: (controller, consoleMessage) =>
+              p5controller.addConsoleMessage(consoleMessage),
+          onLoadStop: p5controller.onLoadStop,
+          initialSettings: webviewSettings,
+          onWebViewCreated: p5controller.onWebViewCreated,
+          onReceivedError: (controller, request, error) {
+            p5controller.addConsoleMessage(
+              ConsoleMessage(
+                message: '${error.description}\n${request.url}',
+                messageLevel: ConsoleMessageLevel.ERROR,
               ),
-            if (notifier.isPageLoading)
-              const Center(child: CupertinoActivityIndicator())
-          ],
-        );
-      }),
+            );
+          },
+          onReceivedHttpError: (controller, request, errorResponse) {
+            print(errorResponse);
+          },
+        ),
+        buildPageLoadingIndicator(),
+        if (showConsole) buildConsoleMessageList(),
+      ],
     );
   }
 
-  Widget buildWebView(P5ViewController notifier) => InAppWebView(
-        key: key,
-        contextMenu: null,
-        initialUrlRequest: URLRequest(url: WebUri(initialUrl)),
-        onConsoleMessage: (controller, consoleMessage) =>
-            notifier.addConsoleMessage(consoleMessage),
-        onLoadStop: notifier.onLoadStop,
-        initialSettings: webviewSettings,
-        onWebViewCreated: notifier.onWebViewCreated,
-        onReceivedError: (controller, request, error) {
-          print(error);
+  Widget buildConsoleMessageList() => ValueListenableBuilder(
+        valueListenable: p5controller.consoleMessages,
+        builder: (context, value, child) {
+          if (value.isNotEmpty) {
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConsoleMessageList(consoleMessages: value),
+            );
+          }
+
+          return const SizedBox();
         },
-        onReceivedHttpError: (controller, request, errorResponse) {
-          print(errorResponse);
+      );
+
+  Widget buildPageLoadingIndicator() => ValueListenableBuilder(
+        valueListenable: p5controller.isPageLoading,
+        builder: (context, value, child) {
+          if (value) {
+            return const Center(child: CupertinoActivityIndicator());
+          }
+
+          return const SizedBox();
         },
       );
 }

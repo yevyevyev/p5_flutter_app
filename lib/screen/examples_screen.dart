@@ -85,7 +85,6 @@ class ExampleSection extends MultiSliver {
             SliverList.builder(
               itemCount: exampleGroup.examples.length,
               itemBuilder: (context, index) => ExampleListTile(
-                key: ValueKey(exampleGroup.examples[index].hashCode),
                 example: exampleGroup.examples[index],
               ),
             ),
@@ -112,14 +111,14 @@ class ExampleListTile extends StatelessWidget {
               ),
               subtitle: SizedBox(
                 height: 200,
-                child: ChangeNotifierProvider(
-                  create: (context) => P5ViewController(
-                    example.code,
-                    context.read(),
-                  ),
+                child: Provider(
+                  dispose: (context, value) => value.dispose(),
+                  lazy: false,
+                  create: (context) => P5ViewController(example.code),
                   builder: (context, child) => P5View(
                     key: ValueKey(example.name.hashCode),
                     showConsole: false,
+                    p5controller: context.read(),
                   ),
                 ),
               ),

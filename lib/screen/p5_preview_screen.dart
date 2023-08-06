@@ -10,9 +10,13 @@ class P5PreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => P5ViewController(code, context.read()),
-      builder: (context, child) => const P5View(),
+    return Provider(
+      dispose: (context, value) => value.dispose(),
+      create: (context) => P5ViewController(code),
+      lazy: false,
+      builder: (context, child) => Scaffold(
+        body: P5View(p5controller: context.read()),
+      ),
     );
   }
 }

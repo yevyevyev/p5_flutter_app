@@ -1,4 +1,5 @@
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:fk_user_agent/fk_user_agent.dart';
 
 final webviewSettings = InAppWebViewSettings(
   mediaPlaybackRequiresUserGesture: false,
@@ -19,6 +20,7 @@ final webviewSettings = InAppWebViewSettings(
   needInitialFocus: false,
   allowsBackForwardNavigationGestures: false,
   allowsLinkPreview: false,
+  userAgent: FkUserAgent.userAgent,
 );
 
 const screenWidthVarName = 'screenWidth';

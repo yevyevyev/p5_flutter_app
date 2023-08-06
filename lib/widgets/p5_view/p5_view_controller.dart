@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:fk_user_agent/fk_user_agent.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:p5_flutter_app/state/localhost_server/localhost_server.dart';
 import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
@@ -9,9 +11,9 @@ const initialUrl = 'http://localhost:8080/p5.html';
 const p5Url = 'http://localhost:8080/p5.min.js';
 const p5SoundUrl = 'http://localhost:8080/p5.sound.min.js';
 
-class P5ViewController extends ChangeNotifier {
-  P5ViewController(this.code, LocalHostServerErrorHandler handler) {
-    _localhostErrorHandler = handler.errorStream.listen((event) {
+class P5ViewController {
+  P5ViewController(this.code) {
+    _localhostErrorHandler = _localhostErrorStream.errorStream.listen((event) {
       addConsoleMessage(ConsoleMessage(
         message: event,
         messageLevel: ConsoleMessageLevel.ERROR,
@@ -19,30 +21,32 @@ class P5ViewController extends ChangeNotifier {
     });
   }
 
-  List<ConsoleMessage> consoleMessages = [];
-  double? screenWidth;
-  double? screenHeight;
-  var isPageLoading = true;
+  static Future<void> preload() async {
+    await FkUserAgent.init();
+    p5MinJsCode = await rootBundle.loadString('assets/p5.min.js');
+    p5SoundMinJsCode = await rootBundle.loadString('assets/p5.sound.min.js');
+    p5IndexHtml = await rootBundle.loadString('assets/p5.html');
+    _localhostErrorStream = await startLocalhost();
+  }
+
+  static late final String p5MinJsCode;
+  static late final String p5SoundMinJsCode;
+  static late final String p5IndexHtml;
+  static late final LocalHostServerErrorHandler _localhostErrorStream;
+  final consoleMessages = ValueNotifier<List<ConsoleMessage>>([]);
+  final isPageLoading = ValueNotifier(true);
   final String code;
+  final _sizeCompleter = Completer<Size>();
 
   void setScreenSize(double width, double height) {
-    var shouldReload = false;
-    if (screenHeight != null && screenHeight != height) {
-      shouldReload = true;
-    }
-    if (screenWidth != null && screenWidth != width) {
-      shouldReload = true;
-    }
-    screenHeight = height;
-    screenWidth = width;
-    if (shouldReload) {
-      _webViewController?.reload();
+    if (width >= 0 && height >= 0 && !_sizeCompleter.isCompleted) {
+      _sizeCompleter.complete(Size(width, height));
     }
   }
 
   void addConsoleMessage(ConsoleMessage msg) {
-    consoleMessages.add(msg);
-    notifyListeners();
+    final value = consoleMessages.value;
+    consoleMessages.value = [...value, msg];
   }
 
   void onWebViewCreated(InAppWebViewController controller) {
@@ -52,19 +56,17 @@ class P5ViewController extends ChangeNotifier {
   void onLoadStop(InAppWebViewController controller, WebUri? uri) async {
     _webViewController = controller;
     try {
-      await controller.injectJavascriptFileFromUrl(urlFile: WebUri(p5Url));
+      final size = await _sizeCompleter.future;
+      final evalCode = '''
+          $p5MinJsCode\n
+          ${code.contains('loadSound') ? p5SoundMinJsCode : ''}\n
+          let $screenWidthVarName = ${size.width};
+          let $screenHeightVarName = ${size.height};\n
+          $code
+          ''';
 
-      if (code.contains('loadSound')) {
-        await controller.injectJavascriptFileFromUrl(
-            urlFile: WebUri(p5SoundUrl));
-      }
-
-      await controller.evaluateJavascript(source: '''
-          let $screenWidthVarName = $screenWidth;
-          let $screenHeightVarName = $screenHeight;
-          ''');
-
-      await controller.evaluateJavascript(source: code);
+      final res = await controller.evaluateJavascript(source: evalCode);
+      print(res);
     } catch (e) {
       addConsoleMessage(
         ConsoleMessage(
@@ -73,18 +75,15 @@ class P5ViewController extends ChangeNotifier {
         ),
       );
     } finally {
-      isPageLoading = false;
-      notifyListeners();
+      isPageLoading.value = false;
     }
   }
 
   InAppWebViewController? _webViewController;
   StreamSubscription<String>? _localhostErrorHandler;
 
-  @override
   void dispose() {
     _localhostErrorHandler?.cancel();
     _webViewController?.dispose();
-    super.dispose();
   }
 }
