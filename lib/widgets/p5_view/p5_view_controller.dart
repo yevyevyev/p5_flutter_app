@@ -13,7 +13,11 @@ const p5Url = 'http://localhost:8080/p5.min.js';
 const p5SoundUrl = 'http://localhost:8080/p5.sound.min.js';
 
 class P5ViewController {
-  P5ViewController({required this.code, this.folder = ''}) {
+  P5ViewController({
+    required this.code,
+    this.folder = '',
+    this.isFullscreen = true,
+  }) {
     _localhostErrorHandler = _localhostErrorStream.errorStream.listen((event) {
       addConsoleMessage(ConsoleMessage(
         message: event,
@@ -37,11 +41,20 @@ class P5ViewController {
   final consoleMessages = ValueNotifier<List<ConsoleMessage>>([]);
   final isPageLoading = ValueNotifier(true);
   final String code;
+  final bool isFullscreen;
   final String folder;
   final _sizeCompleter = Completer<Size>();
 
-  void setScreenSize(double width, double height) {
-    if (width >= 0 && height >= 0 && !_sizeCompleter.isCompleted) {
+  void setScreenSize(BuildContext context, width, double height) {
+    if (_sizeCompleter.isCompleted) {
+      return;
+    }
+
+    if (isFullscreen) {
+      width = MediaQuery.sizeOf(context).width;
+      height = MediaQuery.sizeOf(context).height;
+      _sizeCompleter.complete(Size(width, height));
+    } else if (width > 0 && height > 0 && !_sizeCompleter.isCompleted) {
       _sizeCompleter.complete(Size(width, height));
     }
   }

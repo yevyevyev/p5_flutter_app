@@ -8,8 +8,7 @@ import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-class ExampleScreenNotifier extends ChangeNotifier
-    with SearchMixin<ExampleModel> {
+class ExampleScreenNotifier extends ChangeNotifier with SearchMixin<ExampleModel> {
   ExampleScreenNotifier(this.examplesRepository) {
     addSearchHandler(examplesRepository.searchByName);
   }
@@ -29,8 +28,7 @@ class ExampleScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           elevation: 0,
           title: CupertinoSearchTextField(
-            controller:
-                context.read<ExampleScreenNotifier>().searchTextController,
+            controller: context.read<ExampleScreenNotifier>().searchTextController,
           ),
         ),
         body: buildBody(context),
@@ -51,9 +49,7 @@ class ExampleScreen extends StatelessWidget {
     }
 
     return CustomScrollView(
-      slivers: notifier.examplesRepository.data
-          .map((e) => ExampleSection(exampleGroup: e))
-          .toList(),
+      slivers: notifier.examplesRepository.data.map((e) => ExampleSection(exampleGroup: e)).toList(),
     );
   }
 }
@@ -116,6 +112,7 @@ class ExampleListTile extends StatelessWidget {
                   lazy: false,
                   create: (context) => P5ViewController(
                     code: example.code,
+                    isFullscreen: false,
                   ),
                   builder: (context, child) => P5View(
                     key: ValueKey(example.name.hashCode),
