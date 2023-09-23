@@ -43,6 +43,7 @@ dev_dependencies:
   flutter_driver:
     sdk: flutter
 
+  device_info_plus: ^9.0.3
   flutter_lints: ^2.0.0
   build_runner: ^2.3.3
   freezed: ^2.3.2

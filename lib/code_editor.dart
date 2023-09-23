@@ -56,6 +56,10 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
     final codeThemeData = CodeThemeData(styles: githubTheme);
     return KeyboardVisibilityBuilder(
       builder: (context, isKeyboardVisible) => Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: launchCode,
+          child: const Icon(Icons.play_arrow),
+        ),
         backgroundColor: codeThemeData.styles['root']!.backgroundColor,
         body: SafeArea(
           child: CodeTheme(
@@ -85,13 +89,7 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
   Widget buildActionsRow(BuildContext context) => Row(
         children: [
           TextButton(
-            onPressed: () {
-              final query = Uri.encodeComponent(widget.projectFolder);
-              context.push(
-                '/preview?folder=$query',
-                extra: controller.fullText,
-              );
-            },
+            onPressed: launchCode,
             child: Text('RUN'),
           ),
           const Spacer(),
@@ -101,4 +99,12 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
           ),
         ],
       );
+
+  void launchCode() {
+    final query = Uri.encodeComponent(widget.projectFolder);
+    context.push(
+      '/preview?folder=$query',
+      extra: controller.fullText,
+    );
+  }
 }

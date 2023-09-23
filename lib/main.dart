@@ -7,10 +7,10 @@ import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
-const transientData = false;
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+Future<Widget> initApp(
+  Widget app, {
+  bool transientData = false,
+}) async {
   await P5ViewController.preload();
   await Hive.initFlutter();
 
@@ -23,20 +23,26 @@ void main() async {
   final referenceRepository = ReferenceRepository();
   final examplesRepository = ExamplesRepository();
   final projectsRepository = ProjectsRepository();
-  await referenceRepository.preload();
-  await examplesRepository.preload();
-  await projectsRepository.preload();
+  await Future.wait([
+    referenceRepository.preload(),
+    examplesRepository.preload(),
+    projectsRepository.preload(),
+  ]);
 
-  runApp(
-    Provider.value(
-      value: projectsRepository,
+  return Provider.value(
+    value: projectsRepository,
+    child: Provider.value(
+      value: referenceRepository,
       child: Provider.value(
-        value: referenceRepository,
-        child: Provider.value(
-          value: examplesRepository,
-          child: const P5FlutterApp(),
-        ),
+        value: examplesRepository,
+        child: app,
       ),
     ),
   );
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final app = await initApp(const P5FlutterApp());
+  runApp(app);
 }
