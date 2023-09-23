@@ -18,9 +18,19 @@ class ProjectsRepository {
 
   Future<void> preload() async {
     _projects = await Hive.openBox('projects');
+    if (getAll().isEmpty) {
+      await _initialSeed();
+    }
   }
 
-  void addProject(String name) async {
+  Future<void> _initialSeed() async {
+    //TODO: add project which demonstrates imports
+    // add project which demonstrates image loading
+    // final project = await addProject('Multiple files example');
+    // project.addFile('filename');
+  }
+
+  Future<ProjectModel> addProject(String name) async {
     final key = await _projects.add(
       ProjectModel()
         ..name = name
@@ -31,6 +41,7 @@ class ProjectsRepository {
           'index.js',
           startingCode,
         );
+    return get(key)!;
   }
 
   void updateProject(ProjectModel project) {
