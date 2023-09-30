@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:p5_flutter_app/widgets/p5_view/p5_view_controller.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:p5_flutter_app/state/state.dart';
 import 'package:p5_flutter_app/widgets/p5_view/p5_view_impl.dart';
-import 'package:provider/provider.dart';
 
-class P5PreviewScreen extends StatelessWidget {
+class P5PreviewScreen extends ConsumerWidget {
   const P5PreviewScreen({
     super.key,
     required this.code,
@@ -14,17 +14,11 @@ class P5PreviewScreen extends StatelessWidget {
   final String folder;
 
   @override
-  Widget build(BuildContext context) {
-    return Provider(
-      dispose: (context, value) => value.dispose(),
-      create: (context) => P5ViewController(
-        code: code,
-        folder: folder,
-      ),
-      lazy: false,
-      builder: (context, child) => Scaffold(
-        body: P5View(p5controller: context.read()),
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(p5ViewControllerProvider(code));
+    controller.folder = folder;
+    return Scaffold(
+      body: P5View(p5controller: controller),
     );
   }
 }

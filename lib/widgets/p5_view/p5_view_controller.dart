@@ -41,8 +41,8 @@ class P5ViewController {
   final consoleMessages = ValueNotifier<List<ConsoleMessage>>([]);
   final isPageLoading = ValueNotifier(true);
   final String code;
-  final bool isFullscreen;
-  final String folder;
+  bool isFullscreen;
+  String folder;
   final _sizeCompleter = Completer<Size>();
 
   void setScreenSize(BuildContext context, width, double height) {

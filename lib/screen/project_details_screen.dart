@@ -5,129 +5,41 @@ import 'dart:io';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:p5_flutter_app/model/project.dart';
 import 'package:p5_flutter_app/state/localhost_server/mime_type_resolver.dart';
-import 'package:p5_flutter_app/state/projects_repository.dart';
-import 'package:p5_flutter_app/widgets/widgets.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
+import 'package:p5_flutter_app/state/state.dart';
 
-class ProjectDetailsNotifier extends ChangeNotifier {
-  ProjectDetailsNotifier(this.projectsRepository, this.projectId) {
-    _init();
-  }
-
-  void _init() async {
-    project = projectsRepository.get(projectId)!;
-    isLoading = false;
-    await _refreshFileList();
-  }
-
-  Future<String?> _getFilename(BuildContext context) => TextFieldDialog.show(
-        context,
-        title: 'Enter filename',
-      );
-
-  void addJsFile(BuildContext context) async {
-    final filename = await _getFilename(context);
-    if (filename == null) {
-      return;
-    }
-
-    await project.addFile('${_stripFromFileExtension(filename)}.js');
-    await _refreshFileList();
-  }
-
-  String _stripFromFileExtension(String filename) {
-    final splitted = filename.split('.');
-    if (splitted.isNotEmpty) {
-      filename = splitted.first;
-    }
-    return filename;
-  }
-
-  Future<void> _refreshFileList() async {
-    files = await project.listFiles();
-    notifyListeners();
-  }
-
-  void addImageFile(BuildContext context) async {
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
-    await _addMedia(context, file);
-  }
-
-  Future<void> _addMedia(BuildContext context, XFile? file) async {
-    if (file == null) {
-      return;
-    }
-
-    final dir = await project.projectDir;
-    final filename = await _getFilename(context);
-    if (filename == null) {
-      return;
-    }
-
-    await file.saveTo(
-      '${dir.path}/${_stripFromFileExtension(filename)}.${file.name.split('.').last}',
-    );
-    await _refreshFileList();
-  }
-
-  void addVideoFile(BuildContext context) async {
-    final file = await ImagePicker().pickVideo(source: ImageSource.gallery);
-    await _addMedia(context, file);
-  }
-
-  final int projectId;
-  late final ProjectModel project;
-  final ProjectsRepository projectsRepository;
-  List<FileSystemEntity> files = [];
-  var isLoading = true;
-}
-
-class ProjectDetailsScreen extends StatelessWidget {
-  const ProjectDetailsScreen({super.key, required this.projectId});
-
-  final int projectId;
+class ProjectDetailsScreen extends ConsumerWidget {
+  const ProjectDetailsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ProjectDetailsNotifier(context.read(), projectId),
-      builder: (context, child) {
-        final notifier = context.watch<ProjectDetailsNotifier>();
-
-        if (notifier.isLoading) {
-          return const SizedBox();
-        }
-
-        return Scaffold(
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => onFabPressed(context),
-            child: const Icon(Icons.add),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final project = ref.watch(currentProjectProvider);
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => onFabPressed(context, ref),
+        child: const Icon(Icons.add),
+      ),
+      appBar: AppBar(
+        leading: const BackButton(color: Colors.black),
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: Text(
+          project.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 30,
+            color: Colors.black,
           ),
-          appBar: AppBar(
-            leading: const BackButton(color: Colors.black),
-            backgroundColor: Colors.white,
-            centerTitle: false,
-            title: Text(
-              notifier.project.name,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 30,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          body: const ProjectDetailsBody(),
-        );
-      },
+        ),
+      ),
+      body: const ProjectDetailsBody(),
     );
   }
 
-  void onFabPressed(BuildContext context) async {
-    final notifier = context.read<ProjectDetailsNotifier>();
+  void onFabPressed(BuildContext context, WidgetRef ref) async {
+    final project = ref.read(currentProjectProvider);
     final result = await ProjectDetailsAddActionSheet.show(context);
     if (result == null) {
       return;
@@ -135,15 +47,15 @@ class ProjectDetailsScreen extends StatelessWidget {
 
     switch (result) {
       case ProjectDetailsAddActionSheetResult.file:
-        notifier.addJsFile(context);
+        project.addJsFile(context);
         return;
 
       case ProjectDetailsAddActionSheetResult.image:
-        notifier.addImageFile(context);
+        project.addImageFile(context);
         return;
 
       case ProjectDetailsAddActionSheetResult.video:
-        notifier.addVideoFile(context);
+        project.addVideoFile(context);
         return;
     }
   }
@@ -158,9 +70,7 @@ enum ProjectDetailsAddActionSheetResult {
 class ProjectDetailsAddActionSheet extends StatelessWidget {
   const ProjectDetailsAddActionSheet({super.key});
 
-  static Future<ProjectDetailsAddActionSheetResult?> show(
-          BuildContext context) =>
-      showCupertinoModalPopup(
+  static Future<ProjectDetailsAddActionSheetResult?> show(BuildContext context) => showCupertinoModalPopup(
         context: context,
         builder: (context) => const ProjectDetailsAddActionSheet(),
       );
@@ -175,13 +85,11 @@ class ProjectDetailsAddActionSheet extends StatelessWidget {
         ),
         CupertinoActionSheetAction(
           child: const Text('Add image'),
-          onPressed: () =>
-              context.pop(ProjectDetailsAddActionSheetResult.image),
+          onPressed: () => context.pop(ProjectDetailsAddActionSheetResult.image),
         ),
         CupertinoActionSheetAction(
           child: const Text('Add video'),
-          onPressed: () =>
-              context.pop(ProjectDetailsAddActionSheetResult.video),
+          onPressed: () => context.pop(ProjectDetailsAddActionSheetResult.video),
         ),
       ],
       cancelButton: CupertinoActionSheetAction(
@@ -192,17 +100,22 @@ class ProjectDetailsAddActionSheet extends StatelessWidget {
   }
 }
 
-class ProjectDetailsBody extends StatelessWidget {
+class ProjectDetailsBody extends ConsumerWidget {
   const ProjectDetailsBody({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final notifier = context.watch<ProjectDetailsNotifier>();
-    return ListView.separated(
-      itemBuilder: (context, index) =>
-          ProjectDetailsListTile(file: notifier.files[index]),
-      separatorBuilder: (context, index) => const Divider(),
-      itemCount: notifier.files.length,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final files = ref.watch(currentProjectFilesProvider);
+    return files.when(
+      data: (data) => ListView.separated(
+        itemBuilder: (context, index) => ProjectDetailsListTile(file: data[index]),
+        separatorBuilder: (context, index) => const Divider(),
+        itemCount: data.length,
+      ),
+      error: (error, __) => Center(child: Text(error.toString())),
+      loading: () => const Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }
@@ -265,7 +178,7 @@ extension ProjectDetailsListTileTypeX on ProjectDetailsListTileType {
   }
 }
 
-class ProjectDetailsListTile extends StatelessWidget {
+class ProjectDetailsListTile extends ConsumerWidget {
   const ProjectDetailsListTile({
     super.key,
     required this.file,
@@ -274,9 +187,9 @@ class ProjectDetailsListTile extends StatelessWidget {
   final FileSystemEntity file;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
-      onTap: () => onTap(context),
+      onTap: () => onTap(context, ref),
       title: Text(
         filename,
         style: const TextStyle(fontSize: 20),
@@ -287,13 +200,12 @@ class ProjectDetailsListTile extends StatelessWidget {
 
   String get filename => file.uri.path.split('/').last;
 
-  ProjectDetailsListTileType get tileType =>
-      ProjectDetailsListTileTypeX.fromFilename(filename);
+  ProjectDetailsListTileType get tileType => ProjectDetailsListTileTypeX.fromFilename(filename);
 
   IconData get icon => tileType.toIcon();
 
-  void onTap(BuildContext context) {
-    final notifier = context.read<ProjectDetailsNotifier>();
+  void onTap(BuildContext context, WidgetRef ref) {
+    final projectId = ref.read(currentProjectIdProvider);
     final query = Uri.encodeComponent(file.path);
 
     switch (tileType) {
@@ -309,7 +221,7 @@ class ProjectDetailsListTile extends StatelessWidget {
         context.push('/video?filepath=$query');
         return;
       case ProjectDetailsListTileType.file:
-        context.push('/project/${notifier.project.key}/editor?filepath=$query');
+        context.push('/project/$projectId/editor?filepath=$query');
         return;
       default:
         return;

@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/code_editor.dart';
 import 'package:p5_flutter_app/screen/screen.dart';
+import 'package:p5_flutter_app/state/providers.dart';
 import 'package:p5_flutter_app/widgets/widgets.dart';
 
 class AppRouter {
@@ -56,17 +58,24 @@ class AppRouter {
                   routes: [
                     GoRoute(
                       path: ':projectId',
-                      builder: (context, state) => ProjectDetailsScreen(
-                        projectId:
-                            int.parse(state.pathParameters['projectId']!),
+                      builder: (context, state) => ProviderScope(
+                        parent: ProviderScope.containerOf(context),
+                        overrides: [
+                          currentProjectIdProvider.overrideWithValue(int.parse(state.pathParameters['projectId']!))
+                        ],
+                        child: const ProjectDetailsScreen(),
                       ),
                       routes: [
                         GoRoute(
                           path: 'editor',
-                          builder: (context, state) => ProjectCodeEditorScreen(
-                            filepath: state.uri.queryParameters['filepath']!,
-                            projectId:
-                                int.parse(state.pathParameters['projectId']!),
+                          builder: (context, state) => ProviderScope(
+                            parent: ProviderScope.containerOf(context),
+                            overrides: [
+                              currentProjectIdProvider.overrideWithValue(int.parse(state.pathParameters['projectId']!))
+                            ],
+                            child: ProjectCodeEditorScreen(
+                              filepath: state.uri.queryParameters['filepath']!,
+                            ),
                           ),
                         ),
                       ],

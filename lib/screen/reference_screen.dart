@@ -1,13 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/model/reference.dart';
 import 'package:p5_flutter_app/state/state.dart';
-import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-class ReferenceScreenNotifier extends ChangeNotifier
-    with SearchMixin<ReferenceTokenModel> {
+class ReferenceScreenNotifier extends ChangeNotifier with SearchMixin<ReferenceTokenModel> {
   ReferenceScreenNotifier(this.referenceRepository) {
     addSearchHandler(referenceRepository.searchTokens);
   }
@@ -15,29 +14,29 @@ class ReferenceScreenNotifier extends ChangeNotifier
   final ReferenceRepository referenceRepository;
 }
 
-class ReferenceScreen extends StatelessWidget {
+final referenceScreenProvider = ChangeNotifierProvider((ref) {
+  final reference = ref.watch(referenceRepositoryProvider);
+  return ReferenceScreenNotifier(reference);
+});
+
+class ReferenceScreen extends ConsumerWidget {
   const ReferenceScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ReferenceScreenNotifier(context.read()),
-      builder: (context, child) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: CupertinoSearchTextField(
-            controller:
-                context.read<ReferenceScreenNotifier>().searchTextController,
-          ),
-        ),
-        body: buildBody(context),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reference = ref.watch(referenceScreenProvider);
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: CupertinoSearchTextField(controller: reference.searchTextController),
       ),
+      body: buildBody(context, ref),
     );
   }
 
-  Widget buildBody(BuildContext context) {
-    final notifier = context.watch<ReferenceScreenNotifier>();
+  Widget buildBody(BuildContext context, WidgetRef ref) {
+    final notifier = ref.watch(referenceScreenProvider);
     if (notifier.isSearch) {
       return ListView.builder(
         itemCount: notifier.searchResults.length,
@@ -48,9 +47,7 @@ class ReferenceScreen extends StatelessWidget {
     }
 
     return CustomScrollView(
-      slivers: notifier.referenceRepository.data
-          .map((e) => ReferenceSection(referenceGroup: e))
-          .toList(),
+      slivers: notifier.referenceRepository.data.map((e) => ReferenceSection(referenceGroup: e)).toList(),
     );
   }
 }

@@ -1,78 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/model/project.dart';
 import 'package:p5_flutter_app/state/state.dart';
 import 'package:p5_flutter_app/widgets/widgets.dart';
-import 'package:provider/provider.dart';
 
-class ProjectsNotifier extends ChangeNotifier {
-  ProjectsNotifier(this.projectsRepository);
-
-  void addProject(String name) {
-    projectsRepository.addProject(name);
-    notifyListeners();
-  }
-
-  List<ProjectModel> get data => projectsRepository.getAll();
-
-  final ProjectsRepository projectsRepository;
-}
-
-class ProjectScreen extends StatelessWidget {
+class ProjectScreen extends ConsumerWidget {
   const ProjectScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ProjectsNotifier(context.read()),
-      builder: (context, child) => Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            final projectName = await TextFieldDialog.show(
-              context,
-              title: 'Enter project name',
-            );
-            if (projectName != null) {
-              // ignore: use_build_context_synchronously
-              context.read<ProjectsNotifier>().addProject(projectName);
-            }
-          },
-          child: const Icon(Icons.add),
-        ),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          centerTitle: false,
-          title: const Text(
-            'Projects',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 30,
-              color: Colors.black,
-            ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final projectName = await TextFieldDialog.show(
+            context,
+            title: 'Enter project name',
+          );
+          if (projectName != null) {
+            ref.read(projectsRepositoryProvider).addProject(projectName);
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: const Text(
+          'Projects',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 30,
+            color: Colors.black,
           ),
         ),
-        body: const ProjectsScreenBody(),
       ),
+      body: const ProjectsScreenBody(),
     );
   }
 }
 
-class ProjectsScreenBody extends StatelessWidget {
+class ProjectsScreenBody extends ConsumerWidget {
   const ProjectsScreenBody({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final notifier = context.watch<ProjectsNotifier>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final projects = ref.watch(allProjectsProvider);
 
-    if (notifier.data.isEmpty) {
-      return const ProjectsScreenEmpty();
-    }
-
-    return ListView.separated(
-      itemCount: notifier.data.length,
-      itemBuilder: (context, index) =>
-          ProjectListTile(project: notifier.data[index]),
-      separatorBuilder: (context, index) => const Divider(),
+    return projects.when(
+      data: (data) => ListView.separated(
+        itemCount: data.length,
+        itemBuilder: (context, index) => ProjectListTile(project: data[index]),
+        separatorBuilder: (context, index) => const Divider(),
+      ),
+      error: (error, _) => Center(child: Text(error.toString())),
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }

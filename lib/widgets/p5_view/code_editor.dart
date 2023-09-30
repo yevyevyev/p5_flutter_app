@@ -1,36 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:flutter_highlight/themes/github.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:highlight/languages/javascript.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:p5_flutter_app/state/state.dart';
 import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
-import 'package:p5_flutter_app/widgets/p5_view/webview_settings.dart';
+import 'package:provider/provider.dart';
 
 const customAutocompleteWords = [
   screenWidthVarName,
   screenHeightVarName,
 ];
 
-class CodeEditorWidget extends ConsumerStatefulWidget {
+class CodeEditorWidget extends StatefulWidget {
   const CodeEditorWidget({
     super.key,
     required this.initialCode,
-    this.projectFolder = '',
     this.onChanged,
+    required this.onLaunchPressed,
   });
 
   final String initialCode;
-  final String projectFolder;
   final void Function(String)? onChanged;
+  final VoidCallback onLaunchPressed;
 
   @override
-  ConsumerState<CodeEditorWidget> createState() => _CodeEditorWidgetState();
+  State<CodeEditorWidget> createState() => _CodeEditorWidgetState();
 }
 
-class _CodeEditorWidgetState extends ConsumerState<CodeEditorWidget> {
+class _CodeEditorWidgetState extends State<CodeEditorWidget> {
   late final controller = CodeController(
     text: widget.initialCode,
     language: javascript,
@@ -38,7 +36,7 @@ class _CodeEditorWidgetState extends ConsumerState<CodeEditorWidget> {
 
   @override
   void initState() {
-    final tokens = ref.read(referenceRepositoryProvider).tokens;
+    final tokens = context.read<ReferenceRepository>().tokens;
     controller.autocompleter.setCustomWords(
       customAutocompleteWords + tokens.map((e) => e.label).toList(),
     );
@@ -100,11 +98,5 @@ class _CodeEditorWidgetState extends ConsumerState<CodeEditorWidget> {
         ],
       );
 
-  void launchCode() {
-    final query = Uri.encodeComponent(widget.projectFolder);
-    context.push(
-      '/preview?folder=$query',
-      extra: controller.fullText,
-    );
-  }
+  void launchCode() => widget.onLaunchPressed();
 }

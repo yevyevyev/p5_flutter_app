@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:go_router/go_router.dart';
 import 'package:p5_flutter_app/model/example.dart';
 import 'package:p5_flutter_app/state/state.dart';
 import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
-import 'package:provider/provider.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
 class ExampleScreenNotifier extends ChangeNotifier with SearchMixin<ExampleModel> {
@@ -16,28 +16,30 @@ class ExampleScreenNotifier extends ChangeNotifier with SearchMixin<ExampleModel
   final ExamplesRepository examplesRepository;
 }
 
-class ExampleScreen extends StatelessWidget {
+final exampleScreenProvider = ChangeNotifierProvider((ref) {
+  final examples = ref.watch(examplesRepositoryProvider);
+  return ExampleScreenNotifier(examples);
+});
+
+class ExampleScreen extends ConsumerWidget {
   const ExampleScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ExampleScreenNotifier(context.read()),
-      builder: (context, child) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: CupertinoSearchTextField(
-            controller: context.read<ExampleScreenNotifier>().searchTextController,
-          ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.watch(exampleScreenProvider);
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: CupertinoSearchTextField(
+          controller: notifier.searchTextController,
         ),
-        body: buildBody(context),
       ),
+      body: buildBody(context, notifier),
     );
   }
 
-  Widget buildBody(BuildContext context) {
-    final notifier = context.watch<ExampleScreenNotifier>();
+  Widget buildBody(BuildContext context, ExampleScreenNotifier notifier) {
     if (notifier.isSearch) {
       return ListView.builder(
         itemCount: notifier.searchResults.length,
@@ -107,19 +109,15 @@ class ExampleListTile extends StatelessWidget {
               ),
               subtitle: SizedBox(
                 height: 200,
-                child: Provider(
-                  dispose: (context, value) => value.dispose(),
-                  lazy: false,
-                  create: (context) => P5ViewController(
-                    code: example.code,
-                    isFullscreen: false,
-                  ),
-                  builder: (context, child) => P5View(
+                child: Consumer(builder: (context, ref, _) {
+                  final controller = ref.watch(p5ViewControllerProvider(example.code));
+                  controller.isFullscreen = false;
+                  return P5View(
                     key: ValueKey(example.name.hashCode),
                     showConsole: false,
-                    p5controller: context.read(),
-                  ),
-                ),
+                    p5controller: controller,
+                  );
+                }),
               ),
             ),
           ),

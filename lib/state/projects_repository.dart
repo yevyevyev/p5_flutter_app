@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:p5_flutter_app/model/model.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -50,13 +52,29 @@ class ProjectsRepository {
 
   ProjectModel? get(int id) => _projects.get(id);
   List<ProjectModel> getAll() => _projects.values.toList();
+
+  Stream<List<ProjectModel>> watchAll() {
+    return StreamGroup.merge([
+      Stream.value(getAll()),
+      _projects.watch().map((event) => getAll()),
+    ]);
+  }
 }
 
 extension ProjectModelX on ProjectModel {
+  static final Map<int, StreamController<List<FileSystemEntity>>> _fileStreams = {};
+
+  static StreamController<List<FileSystemEntity>> _getFileStream(int id) => _fileStreams.putIfAbsent(
+        id,
+        () => StreamController.broadcast(),
+      );
+
   Future<Directory> get projectDir async {
     final appDir = await getApplicationDocumentsDirectory();
     return Directory('${appDir.path}/project_$key');
   }
+
+  void _refreshFileWatcher() => _listFiles().then(_getFileStream(id).add);
 
   Future<void> addFile(String filename, [String? content]) async {
     final dir = await projectDir;
@@ -65,10 +83,24 @@ extension ProjectModelX on ProjectModel {
     if (content != null) {
       await file.writeAsString(content);
     }
+    _refreshFileWatcher();
   }
 
-  Future<List<FileSystemEntity>> listFiles() async {
+  Future<void> addMedia(XFile file, String filename) async {
+    final dir = await projectDir;
+    await file.saveTo('${dir.path}/$filename');
+    _refreshFileWatcher();
+  }
+
+  int get id => int.parse(key.toString());
+
+  Future<List<FileSystemEntity>> _listFiles() async {
     final dir = await projectDir;
     return dir.listSync();
   }
+
+  Stream<List<FileSystemEntity>> watchFiles() => StreamGroup.merge([
+        Stream.fromFuture(_listFiles()),
+        _getFileStream(id).stream,
+      ]);
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:p5_flutter_app/app.dart';
 import 'package:p5_flutter_app/model/project.dart';
 import 'package:p5_flutter_app/state/state.dart';
 import 'package:p5_flutter_app/widgets/p5_view/p5_view.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
 
 Future<Widget> initApp(
   Widget app, {
@@ -29,15 +29,13 @@ Future<Widget> initApp(
     projectsRepository.preload(),
   ]);
 
-  return Provider.value(
-    value: projectsRepository,
-    child: Provider.value(
-      value: referenceRepository,
-      child: Provider.value(
-        value: examplesRepository,
-        child: app,
-      ),
-    ),
+  return ProviderScope(
+    overrides: [
+      examplesRepositoryProvider.overrideWithValue(examplesRepository),
+      projectsRepositoryProvider.overrideWithValue(projectsRepository),
+      referenceRepositoryProvider.overrideWithValue(referenceRepository),
+    ],
+    child: app,
   );
 }
 
