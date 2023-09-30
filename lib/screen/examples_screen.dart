@@ -109,15 +109,7 @@ class ExampleListTile extends StatelessWidget {
               ),
               subtitle: SizedBox(
                 height: 200,
-                child: Consumer(builder: (context, ref, _) {
-                  final controller = ref.watch(p5ViewControllerProvider(example.code));
-                  controller.isFullscreen = false;
-                  return P5View(
-                    key: ValueKey(example.name.hashCode),
-                    showConsole: false,
-                    p5controller: controller,
-                  );
-                }),
+                child: P5ExamplePreview(example: example),
               ),
             ),
           ),
@@ -135,4 +127,33 @@ class ExampleListTile extends StatelessWidget {
         '/editor',
         extra: example.code,
       );
+}
+
+class P5ExamplePreview extends ConsumerStatefulWidget {
+  const P5ExamplePreview({super.key, required this.example});
+
+  final ExampleModel example;
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _P5ExamplePreviewState();
+}
+
+class _P5ExamplePreviewState extends ConsumerState<P5ExamplePreview> {
+  late final controller = P5ViewController(code: widget.example.code);
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return P5View(
+      key: ValueKey(widget.example.name.hashCode),
+      showConsole: false,
+      isFullscreen: false,
+      p5controller: controller,
+    );
+  }
 }

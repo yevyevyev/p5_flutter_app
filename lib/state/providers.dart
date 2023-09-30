@@ -3,7 +3,6 @@ import 'package:p5_flutter_app/model/model.dart';
 import 'package:p5_flutter_app/state/examples_repository.dart';
 import 'package:p5_flutter_app/state/projects_repository.dart';
 import 'package:p5_flutter_app/state/reference_repository.dart';
-import 'package:p5_flutter_app/widgets/p5_view/p5_view_controller.dart';
 
 final examplesRepositoryProvider = Provider<ExamplesRepository>((ref) => throw UnimplementedError());
 final projectsRepositoryProvider = Provider<ProjectsRepository>((ref) => throw UnimplementedError());
@@ -53,12 +52,4 @@ final allExamplesGroupedProvider = Provider.autoDispose((ref) {
 final allProjectsProvider = StreamProvider.autoDispose((ref) {
   final projects = ref.watch(projectsRepositoryProvider);
   return projects.watchAll();
-});
-
-final p5ViewControllerProvider = Provider.family.autoDispose<P5ViewController, String>((ref, code) {
-  final controller = P5ViewController(code: code);
-  ref.onDispose(() {
-    controller.dispose();
-  });
-  return controller;
 });

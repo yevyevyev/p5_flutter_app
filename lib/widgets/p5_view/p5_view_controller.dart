@@ -16,7 +16,6 @@ class P5ViewController {
   P5ViewController({
     required this.code,
     this.folder = '',
-    this.isFullscreen = true,
   }) {
     _localhostErrorHandler = _localhostErrorStream.errorStream.listen((event) {
       addConsoleMessage(ConsoleMessage(
@@ -41,11 +40,10 @@ class P5ViewController {
   final consoleMessages = ValueNotifier<List<ConsoleMessage>>([]);
   final isPageLoading = ValueNotifier(true);
   final String code;
-  bool isFullscreen;
-  String folder;
+  final String folder;
   final _sizeCompleter = Completer<Size>();
 
-  void setScreenSize(BuildContext context, width, double height) {
+  void setScreenSize(BuildContext context, width, double height, bool isFullscreen) {
     if (_sizeCompleter.isCompleted) {
       return;
     }

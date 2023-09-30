@@ -9,9 +9,11 @@ class P5View extends StatelessWidget {
     super.key,
     this.showConsole = true,
     required this.p5controller,
+    required this.isFullscreen,
   });
 
   final bool showConsole;
+  final bool isFullscreen;
   final P5ViewController p5controller;
 
   @override
@@ -28,6 +30,7 @@ class P5View extends StatelessWidget {
               context,
               constraints.maxWidth,
               constraints.maxHeight,
+              isFullscreen,
             );
             return const SizedBox();
           }),
